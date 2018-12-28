@@ -1,0 +1,2 @@
+type gpsd_prop, property_type;
+type rild_prop, property_type;

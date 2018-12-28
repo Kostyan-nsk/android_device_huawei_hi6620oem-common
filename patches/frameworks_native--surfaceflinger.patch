@@ -1,0 +1,36 @@
+diff --git a/services/surfaceflinger/DispSync.cpp b/services/surfaceflinger/DispSync.cpp
+index 192d746..1fa7652 100644
+--- a/services/surfaceflinger/DispSync.cpp
++++ b/services/surfaceflinger/DispSync.cpp
+@@ -296,6 +296,14 @@ DispSync::DispSync() :
+         mThread(new DispSyncThread()) {
+ 
+     mThread->run("DispSync", PRIORITY_URGENT_DISPLAY + PRIORITY_MORE_FAVORABLE);
++
++    // set DispSync to SCHED_FIFO to minimize jitter
++    struct sched_param param = {0};
++    param.sched_priority = 2;
++    if (sched_setscheduler(mThread->getTid(), SCHED_FIFO, &param) != 0) {
++        ALOGE("Couldn't set SCHED_FIFO for DispSyncThread");
++    }
++
+     android_set_rt_ioprio(mThread->getTid(), 1);
+ 
+     reset();
+diff --git a/services/surfaceflinger/main_surfaceflinger.cpp b/services/surfaceflinger/main_surfaceflinger.cpp
+index e8464a3..00415ac 100644
+--- a/services/surfaceflinger/main_surfaceflinger.cpp
++++ b/services/surfaceflinger/main_surfaceflinger.cpp
+@@ -56,6 +56,12 @@ int main(int, char**) {
+     sp<IServiceManager> sm(defaultServiceManager());
+     sm->addService(String16(SurfaceFlinger::getServiceName()), flinger, false);
+ 
++    struct sched_param param = {0};
++    param.sched_priority = 2;
++    if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
++        ALOGE("Couldn't set SCHED_FIFO");
++    }
++
+     // run in this thread
+     flinger->run();
+ 

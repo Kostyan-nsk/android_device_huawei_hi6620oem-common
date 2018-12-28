@@ -1,0 +1,9 @@
+type mac_addr, domain;
+type mac_addr_exec, exec_type, file_type;
+
+init_daemon_domain(mac_addr)
+
+allow mac_addr self:capability { dac_override chown fowner fsetid };
+allow mac_addr recovery_device:chr_file { open read write ioctl };
+allow mac_addr { wifi_data_file bluetooth_data_file }:dir { search write add_name };
+allow mac_addr { wifi_data_file bluetooth_data_file }:file create_file_perms;

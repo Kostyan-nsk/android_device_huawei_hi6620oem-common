@@ -1,0 +1,47 @@
+diff --git a/init/init.cpp b/init/init.cpp
+index 8ea42ca..a1c0101 100644
+--- a/init/init.cpp
++++ b/init/init.cpp
+@@ -64,6 +64,7 @@
+ #include "ueventd.h"
+ #include "watchdogd.h"
+ #include "vendor_init.h"
++#include <nvme.h>
+ 
+ struct selabel_handle *sehandle;
+ struct selabel_handle *sehandle_prop;
+@@ -1022,6 +1023,26 @@ static int charging_mode_booting(void) {
+ #endif
+ }
+ 
++int get_serialno_action(int nargs, char **args) {
++    int ret;
++    struct nve_info_user info;
++
++    info.nv_operation = NV_READ;
++    info.nv_number = NVE_BOARDID;
++    info.valid_size = 32;
++    memset(info.nv_data, 0, NVE_NV_DATA_SIZE);
++
++    ret = nvme_access(&info);
++    if (ret == 0)
++	property_set("ro.serialno", (const char *)info.nv_data);
++    else {
++	ERROR("get_serialno: %s", strerror(-ret));
++	property_set("ro.serialno", "0123456789ABCDEF");
++    }
++
++    return 0;
++}
++
+ int main(int argc, char** argv) {
+     if (!strcmp(basename(argv[0]), "ueventd")) {
+         return ueventd_main(argc, argv);
+@@ -1126,6 +1147,7 @@ int main(int argc, char** argv) {
+ 
+     // Trigger all the boot actions to get us started.
+     action_for_each_trigger("init", action_add_queue_tail);
++    queue_builtin_action(get_serialno_action, "get_serialno");
+ 
+     // Repeat mix_hwrng_into_linux_rng in case /dev/hw_random or /dev/random
+     // wasn't ready immediately after wait_for_coldboot_done

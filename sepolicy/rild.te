@@ -1,0 +1,5 @@
+set_prop(rild, rild_prop)
+
+allow rild debugfs:file read;
+allow rild sysfs:file write;
+allow rild proc_net:file write;

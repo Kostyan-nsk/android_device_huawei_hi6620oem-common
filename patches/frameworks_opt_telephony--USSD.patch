@@ -1,0 +1,13 @@
+diff --git a/src/java/com/android/internal/telephony/gsm/GSMPhone.java b/src/java/com/android/internal/telephony/gsm/GSMPhone.java
+index e2624da..c05e161 100644
+--- a/src/java/com/android/internal/telephony/gsm/GSMPhone.java
++++ b/src/java/com/android/internal/telephony/gsm/GSMPhone.java
+@@ -1514,7 +1514,7 @@ public class GSMPhone extends PhoneBase {
+             // Complete pending USSD
+ 
+             if (isUssdRelease) {
+-                found.onUssdRelease();
++                found.onUssdFinished(ussdMessage, isUssdRequest);
+             } else if (isUssdError) {
+                 found.onUssdFinishedError();
+             } else {

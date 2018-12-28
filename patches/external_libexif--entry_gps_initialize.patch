@@ -1,0 +1,161 @@
+diff --git a/libexif/exif-entry.c b/libexif/exif-entry.c
+index 0f72865..3195563 100644
+--- a/libexif/exif-entry.c
++++ b/libexif/exif-entry.c
+@@ -1746,3 +1746,143 @@ exif_entry_initialize (ExifEntry *e, ExifTag tag)
+ 		break;
+ 	}
+ }
++
++void
++exif_entry_gps_initialize (ExifEntry *e, int tag)
++{
++        ExifRational r;
++        ExifByteOrder o;
++
++        /* We need the byte order */
++        if (!e || !e->parent || e->data || !e->parent->parent)
++                return;
++        o = exif_data_get_byte_order (e->parent->parent);
++
++        e->tag = tag;
++        switch (tag) {
++        /* BYTE, 4 components, default (0x2, 0x2, 0x0, 0x0) */
++        case EXIF_TAG_GPS_VERSION_ID:
++                e->components = 4;
++                e->format = EXIF_FORMAT_BYTE;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                exif_set_short (e->data, o, 0x0202);
++                exif_set_short (e->data + 2 * exif_format_get_size (e->format), o, 0x0000);
++                break;
++
++        /* RATIONAL, component, default 0/1 */
++        case EXIF_TAG_GPS_ALTITUDE:
++                e->components = 1;
++                e->format = EXIF_FORMAT_RATIONAL;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                r.numerator = 0;
++                r.denominator = 1;
++                exif_set_rational (e->data, o, r);
++                break;
++
++        /* RATIONAL, 1 component, no default */
++        case EXIF_TAG_GPS_DOP:
++        case EXIF_TAG_GPS_SPEED:
++        case EXIF_TAG_GPS_TRACK:
++        case EXIF_TAG_GPS_IMG_DIRECTION:
++                e->components = 1;
++                e->format = EXIF_FORMAT_RATIONAL;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                break;
++
++        /* RATIONAL, 3 components, default 0/1*/
++        case EXIF_TAG_YCBCR_COEFFICIENTS:
++        case EXIF_TAG_GPS_TIME_STAMP:
++        case EXIF_TAG_GPS_LONGITUDE:
++        case EXIF_TAG_GPS_LATITUDE:
++                e->components = 3;
++                e->format = EXIF_FORMAT_RATIONAL;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                r.numerator = 1;
++                r.denominator = 1;
++                exif_set_rational (e->data, o, r);
++                exif_set_rational (e->data + exif_format_get_size (e->format), o, r);
++                exif_set_rational (e->data + 2 * exif_format_get_size (e->format), o, r);
++                break;
++
++        /* BYTE 1 Components, default 0*/
++        case EXIF_TAG_GPS_ALTITUDE_REF:
++                e->components = 1;
++                e->format = EXIF_FORMAT_BYTE;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                memset((char *) e->data, 0, e->size);
++                break;
++
++        /* ASCII 2 Components,  default 0*/
++        case EXIF_TAG_GPS_LATITUDE_REF:
++        case EXIF_TAG_GPS_LONGITUDE_REF:
++                e->components = 2;
++                e->format = EXIF_FORMAT_ASCII;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                memset((char *) e->data, 0, e->size);
++                break;
++
++        /* ASCII 2 components, no default */
++        case EXIF_TAG_GPS_STATUS:
++                e->components = 2;
++                e->format = EXIF_FORMAT_ASCII;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                memset((char *) e->data, 0, e->size);
++                break;
++
++
++        /* ASCII 2 Components,  default 'T' */
++        case EXIF_TAG_GPS_TRACK_REF:
++        case EXIF_TAG_GPS_IMG_DIRECTION_REF:
++                e->components = 2;
++                e->format = EXIF_FORMAT_ASCII;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                memcpy(e->data, "T\0", 2);
++                break;
++
++        /* ASCII 2 Components,  default 'K' */
++        case EXIF_TAG_GPS_SPEED_REF:
++                e->components = 2;
++                e->format = EXIF_FORMAT_ASCII;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                memcpy(e->data, "K\0", 2);
++                break;
++
++        /* ASCII 20 Components, no default*/
++        case EXIF_TAG_GPS_MAP_DATUM:
++                e->components = 20;
++                e->format = EXIF_FORMAT_ASCII;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                memset((char *) e->data, 0, e->size);
++                break;
++
++        /* ASCII 11 Components, no default*/
++        case EXIF_TAG_GPS_DATE_STAMP:
++                e->components = 11;
++                e->format = EXIF_FORMAT_ASCII;
++                e->size = exif_format_get_size (e->format) * e->components;
++                e->data = exif_entry_alloc (e, e->size);
++                if (!e->data) break;
++                memset((char *) e->data, 0, e->size);
++                break;
++        }
++}
+diff --git a/libexif/exif-entry.h b/libexif/exif-entry.h
+index 1dcdc73..e087f6f 100644
+--- a/libexif/exif-entry.h
++++ b/libexif/exif-entry.h
+@@ -124,6 +124,8 @@ void        exif_entry_free  (ExifEntry *entry);
+  */
+ void        exif_entry_initialize (ExifEntry *e, ExifTag tag);
+ 
++void        exif_entry_gps_initialize (ExifEntry *e, int tag);
++
+ /*! Fix the type or format of the given EXIF entry to bring it into spec.
+  * If the data for this EXIF tag is in of the wrong type or is in an invalid
+  * format according to the EXIF specification, then it is converted to make it

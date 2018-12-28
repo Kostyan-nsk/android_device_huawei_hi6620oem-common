@@ -1,0 +1,13 @@
+diff --git a/core/jni/android_hardware_Camera.cpp b/core/jni/android_hardware_Camera.cpp
+index 4cf317e..c20ab75 100644
+--- a/core/jni/android_hardware_Camera.cpp
++++ b/core/jni/android_hardware_Camera.cpp
+@@ -1061,7 +1061,7 @@ static void android_hardware_Camera_enableFocusMoveCallback(JNIEnv *env, jobject
+     if (camera == 0) return;
+ 
+     if (camera->sendCommand(CAMERA_CMD_ENABLE_FOCUS_MOVE_MSG, enable, 0) != NO_ERROR) {
+-        jniThrowRuntimeException(env, "enable focus move callback failed");
++        ALOGE("enable focus move callback failed");
+     }
+ }
+ 

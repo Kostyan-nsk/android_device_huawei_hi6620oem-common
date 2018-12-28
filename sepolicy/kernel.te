@@ -1,0 +1,2 @@
+allow kernel radio_data_file:dir search;
+allow kernel radio_data_file:file rw_file_perms;

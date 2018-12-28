@@ -1,0 +1,2 @@
+allow ueventd binfmt_miscfs:blk_file { create setattr };
+allow binfmt_miscfs tmpfs:filesystem associate;

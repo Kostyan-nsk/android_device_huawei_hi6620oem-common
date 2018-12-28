@@ -1,0 +1,29 @@
+diff --git a/libc/bionic/libc_init_common.cpp b/libc/bionic/libc_init_common.cpp
+index ecde8d4..bd71628 100644
+--- a/libc/bionic/libc_init_common.cpp
++++ b/libc/bionic/libc_init_common.cpp
+@@ -250,7 +250,6 @@ static bool __is_unsafe_environment_variable(const char* name) {
+       "LD_ORIGIN_PATH",
+       "LD_PRELOAD",
+       "LD_PROFILE",
+-      "LD_SHIM_LIBS",
+       "LD_SHOW_AUXV",
+       "LD_USE_LOAD_BIAS",
+       "LOCALDOMAIN",
+diff --git a/linker/linker.cpp b/linker/linker.cpp
+index 2573c89..e4e35cf 100644
+--- a/linker/linker.cpp
++++ b/linker/linker.cpp
+@@ -3243,11 +3243,10 @@ static ElfW(Addr) __linker_init_post_relocation(KernelArgumentBlock& args, ElfW(
+   // doesn't cost us anything.
+   const char* ldpath_env = nullptr;
+   const char* ldpreload_env = nullptr;
+-  const char* ldshim_libs_env = nullptr;
++  const char* ldshim_libs_env = getenv("LD_SHIM_LIBS");
+   if (!getauxval(AT_SECURE)) {
+     ldpath_env = getenv("LD_LIBRARY_PATH");
+     ldpreload_env = getenv("LD_PRELOAD");
+-    ldshim_libs_env = getenv("LD_SHIM_LIBS");
+   }
+ 
+   INFO("[ android linker & debugger ]");

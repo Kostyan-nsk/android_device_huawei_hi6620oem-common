@@ -1,0 +1,3 @@
+allow init recovery_device:chr_file { getattr open read write ioctl };
+allow init binfmt_miscfs:blk_file setattr;
+allow init tmpfs:lnk_file create;

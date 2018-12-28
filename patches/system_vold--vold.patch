@@ -1,0 +1,37 @@
+diff --git a/PrivateVolume.cpp b/PrivateVolume.cpp
+index 6b8f800..4c0b809 100644
+--- a/PrivateVolume.cpp
++++ b/PrivateVolume.cpp
+@@ -158,8 +158,8 @@ status_t PrivateVolume::doMount() {
+     // Verify that common directories are ready to roll
+     if (PrepareDir(mPath + "/app", 0771, AID_SYSTEM, AID_SYSTEM) ||
+             PrepareDir(mPath + "/user", 0711, AID_SYSTEM, AID_SYSTEM) ||
+-            PrepareDir(mPath + "/media", 0770, AID_MEDIA_RW, AID_MEDIA_RW) ||
+-            PrepareDir(mPath + "/media/0", 0770, AID_MEDIA_RW, AID_MEDIA_RW) ||
++            PrepareDir(mPath + "/share", 0770, AID_MEDIA_RW, AID_MEDIA_RW) ||
++            PrepareDir(mPath + "/share/0", 0770, AID_MEDIA_RW, AID_MEDIA_RW) ||
+             PrepareDir(mPath + "/local", 0751, AID_ROOT, AID_ROOT) ||
+             PrepareDir(mPath + "/local/tmp", 0771, AID_SHELL, AID_SHELL)) {
+         PLOG(ERROR) << getId() << " failed to prepare";
+@@ -168,7 +168,7 @@ status_t PrivateVolume::doMount() {
+ 
+     // Create a new emulated volume stacked above us, it will automatically
+     // be destroyed during unmount
+-    std::string mediaPath(mPath + "/media");
++    std::string mediaPath(mPath + "/share");
+     auto vol = std::shared_ptr<VolumeBase>(
+             new EmulatedVolume(mediaPath, mRawDevice, mFsUuid));
+     addVolume(vol);
+diff --git a/VolumeManager.cpp b/VolumeManager.cpp
+index 2f623ef..cd9a156 100755
+--- a/VolumeManager.cpp
++++ b/VolumeManager.cpp
+@@ -261,7 +261,7 @@ int VolumeManager::start() {
+     // storage; the framework will decide if it should be mounted.
+     CHECK(mInternalEmulated == nullptr);
+     mInternalEmulated = std::shared_ptr<android::vold::VolumeBase>(
+-            new android::vold::EmulatedVolume("/data/media"));
++            new android::vold::EmulatedVolume("/data/share"));
+     mInternalEmulated->create();
+ 
+     return 0;

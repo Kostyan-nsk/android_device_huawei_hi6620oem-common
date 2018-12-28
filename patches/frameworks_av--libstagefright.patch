@@ -1,0 +1,304 @@
+diff --git a/include/media/stagefright/ACodec.h b/include/media/stagefright/ACodec.h
+index 0ac13b9..70b522c 100644
+--- a/include/media/stagefright/ACodec.h
++++ b/include/media/stagefright/ACodec.h
+@@ -294,7 +294,7 @@ protected:
+     status_t submitOutputMetadataBuffer();
+     void signalSubmitOutputMetadataBufferIfEOS_workaround();
+     status_t allocateOutputBuffersFromNativeWindow();
+-#ifdef USE_SAMSUNG_COLORFORMAT
++#if defined(DECODER_COLOR_FORMAT_RGBA_8888) || defined(DECODER_COLOR_FORMAT_NV12)
+     void setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat);
+ #endif
+     status_t cancelBufferToNativeWindow(BufferInfo *info);
+diff --git a/include/media/stagefright/ColorConverter.h b/include/media/stagefright/ColorConverter.h
+index 85ba920..e590744 100644
+--- a/include/media/stagefright/ColorConverter.h
++++ b/include/media/stagefright/ColorConverter.h
+@@ -79,6 +79,11 @@ private:
+     status_t convertTIYUV420PackedSemiPlanar(
+             const BitmapParams &src, const BitmapParams &dst);
+ 
++#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++    status_t convertRGBA8888(
++            const BitmapParams &src, const BitmapParams &dst);
++#endif
++
+     ColorConverter(const ColorConverter &);
+     ColorConverter &operator=(const ColorConverter &);
+ };
+diff --git a/media/libstagefright/ACodec.cpp b/media/libstagefright/ACodec.cpp
+index 581bfba..60fb8c3 100644
+--- a/media/libstagefright/ACodec.cpp
++++ b/media/libstagefright/ACodec.cpp
+@@ -55,10 +55,6 @@
+ #include <OMX_IndexExt.h>
+ #include <OMX_AsString.h>
+ 
+-#ifdef USE_SAMSUNG_COLORFORMAT
+-#include <sec_format.h>
+-#endif
+-
+ #include "include/avc_utils.h"
+ 
+ #include <stagefright/AVExtensions.h>
+@@ -920,7 +916,7 @@ status_t ACodec::setupNativeWindowSizeFormatAndUsage(
+     usage |= kVideoGrallocUsage;
+     *finalUsage = usage;
+ 
+-#ifdef USE_SAMSUNG_COLORFORMAT
++#if defined(DECODER_COLOR_FORMAT_RGBA_8888) || defined(DECODER_COLOR_FORMAT_NV12)
+     OMX_COLOR_FORMATTYPE eNativeColorFormat = def.format.video.eColorFormat;
+     setNativeWindowColorFormat(eNativeColorFormat);
+ #endif
+@@ -944,7 +940,7 @@ status_t ACodec::setupNativeWindowSizeFormatAndUsage(
+             nativeWindow,
+             width,
+             height,
+-#ifdef USE_SAMSUNG_COLORFORMAT
++#if defined(DECODER_COLOR_FORMAT_RGBA_8888) || defined(DECODER_COLOR_FORMAT_NV12)
+             eNativeColorFormat,
+ #else
+             def.format.video.eColorFormat,
+@@ -1308,23 +1304,19 @@ void ACodec::dumpBuffers(OMX_U32 portIndex) {
+     }
+ }
+ 
+-#ifdef USE_SAMSUNG_COLORFORMAT
++#if defined(DECODER_COLOR_FORMAT_RGBA_8888) || defined(DECODER_COLOR_FORMAT_NV12)
+ void ACodec::setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat)
+ {
+-    // In case of Samsung decoders, we set proper native color format for the Native Window
+-    if (!strcasecmp(mComponentName.c_str(), "OMX.SEC.AVC.Decoder")
+-        || !strcasecmp(mComponentName.c_str(), "OMX.SEC.FP.AVC.Decoder")
+-        || !strcasecmp(mComponentName.c_str(), "OMX.SEC.MPEG4.Decoder")
+-        || !strcasecmp(mComponentName.c_str(), "OMX.Exynos.AVC.Decoder")) {
+-        switch (eNativeColorFormat) {
+-            case OMX_COLOR_FormatYUV420SemiPlanar:
+-                eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCbCr_420_SP;
+-                break;
+-            case OMX_COLOR_FormatYUV420Planar:
+-            default:
+-                eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCbCr_420_P;
+-                break;
+-        }
++    switch (eNativeColorFormat) {
++        case OMX_COLOR_Format32bitBGRA8888:
++            eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_RGBA_8888;
++            break;
++        case OMX_COLOR_FormatYUV420PackedSemiPlanar:
++        case OMX_COLOR_FormatYUV420SemiPlanar:
++            eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCbCr_420_SP;
++            break;
++        default:
++            break;
+     }
+ }
+ #endif
+@@ -2839,7 +2831,6 @@ status_t ACodec::setVideoPortFormatType(
+         if (err != OK) {
+             return err;
+         }
+-
+         // substitute back flexible color format to codec supported format
+         OMX_U32 flexibleEquivalent;
+         if (compressionFormat == OMX_VIDEO_CodingUnused
+@@ -3030,14 +3021,23 @@ status_t ACodec::setupVideoDecoder(
+         OMX_COLOR_FORMATTYPE colorFormat =
+             static_cast<OMX_COLOR_FORMATTYPE>(tmp);
+         err = setVideoPortFormatType(
++#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++                kPortIndexOutput, OMX_VIDEO_CodingUnused, OMX_COLOR_Format32bitBGRA8888, haveNativeWindow);
++#else
+                 kPortIndexOutput, OMX_VIDEO_CodingUnused, colorFormat, haveNativeWindow);
++#endif
+         if (err != OK) {
+             ALOGW("[%s] does not support color format %d",
+                   mComponentName.c_str(), colorFormat);
+             err = setSupportedOutputFormat(!haveNativeWindow /* getLegacyFlexibleFormat */);
+         }
+     } else {
++#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++        err = setVideoPortFormatType(
++                kPortIndexOutput, OMX_VIDEO_CodingUnused, OMX_COLOR_Format32bitBGRA8888, haveNativeWindow);
++#else
+         err = setSupportedOutputFormat(!haveNativeWindow /* getLegacyFlexibleFormat */);
++#endif
+     }
+ 
+     if (err != OK) {
+@@ -3111,7 +3111,7 @@ status_t ACodec::setupVideoEncoder(const char *mime, const sp<AMessage> &msg) {
+             || !msg->findInt32("bitrate", &bitrate)) {
+         return INVALID_OPERATION;
+     }
+-
++    width = (width + 0x0F) & ~0x0F;
+     video_def->nFrameWidth = width;
+     video_def->nFrameHeight = height;
+ 
+diff --git a/media/libstagefright/Android.mk b/media/libstagefright/Android.mk
+index 792c139..aa2a9a6 100644
+--- a/media/libstagefright/Android.mk
++++ b/media/libstagefright/Android.mk
+@@ -203,13 +203,8 @@ LOCAL_C_INCLUDES += $(TOP)/external/stagefright-plugins/include
+ 
+ #LOCAL_CFLAGS += -DLOG_NDEBUG=0
+ 
+-ifeq ($(BOARD_USE_SAMSUNG_COLORFORMAT), true)
+-LOCAL_CFLAGS += -DUSE_SAMSUNG_COLORFORMAT
+-
+-# Include native color format header path
+-LOCAL_C_INCLUDES += \
+-	$(TOP)/hardware/samsung/exynos4/hal/include \
+-	$(TOP)/hardware/samsung/exynos4/include
++ifneq (,$(filter RGBA_8888 NV12,$(BOARD_DECODER_COLOR_FORMAT)))
++LOCAL_CFLAGS += -DDECODER_COLOR_FORMAT_$(BOARD_DECODER_COLOR_FORMAT)
+ endif
+ 
+ LOCAL_MODULE:= libstagefright
+diff --git a/media/libstagefright/colorconversion/Android.mk b/media/libstagefright/colorconversion/Android.mk
+index 4f7c48f..08a1238 100644
+--- a/media/libstagefright/colorconversion/Android.mk
++++ b/media/libstagefright/colorconversion/Android.mk
+@@ -9,6 +9,10 @@ LOCAL_C_INCLUDES := \
+         $(TOP)/frameworks/native/include/media/openmax \
+         $(TOP)/hardware/msm7k
+ 
++ifeq ($(BOARD_DECODER_COLOR_FORMAT),RGBA_8888)
++LOCAL_CFLAGS += -DDECODER_COLOR_FORMAT_$(BOARD_DECODER_COLOR_FORMAT)
++endif
++
+ LOCAL_CFLAGS += -Werror
+ LOCAL_CLANG := true
+ 
+diff --git a/media/libstagefright/colorconversion/ColorConverter.cpp b/media/libstagefright/colorconversion/ColorConverter.cpp
+index 597167f..e33f116 100644
+--- a/media/libstagefright/colorconversion/ColorConverter.cpp
++++ b/media/libstagefright/colorconversion/ColorConverter.cpp
+@@ -47,6 +47,9 @@ bool ColorConverter::isValid() const {
+         case OMX_QCOM_COLOR_FormatYVU420SemiPlanar:
+         case OMX_COLOR_FormatYUV420SemiPlanar:
+         case OMX_TI_COLOR_FormatYUV420PackedSemiPlanar:
++#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++        case OMX_COLOR_Format32bitBGRA8888:
++#endif
+             return true;
+ 
+         default:
+@@ -122,6 +125,11 @@ status_t ColorConverter::convert(
+             err = convertTIYUV420PackedSemiPlanar(src, dst);
+             break;
+ 
++#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++        case OMX_COLOR_Format32bitBGRA8888:
++            err = convertRGBA8888(src, dst);
++            break;
++#endif
+         default:
+         {
+             CHECK(!"Should not be here. Unknown color conversion.");
+@@ -132,6 +140,104 @@ status_t ColorConverter::convert(
+     return err;
+ }
+ 
++#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++/* Dither Treshold for Red Channel */
++static const uint8_t dither_treshold_r[64] = {
++	1, 7, 3, 5, 0, 8, 2, 6,
++	7, 1, 5, 3, 8, 0, 6, 2,
++	3, 5, 0, 8, 2, 6, 1, 7,
++	5, 3, 8, 0, 6, 2, 7, 1,
++	0, 8, 2, 6, 1, 7, 3, 5,
++	8, 0, 6, 2, 7, 1, 5, 3,
++	2, 6, 1, 7, 3, 5, 0, 8,
++	6, 2, 7, 1, 5, 3, 8, 0
++};
++
++/* Dither Treshold for Green Channel */
++static const uint8_t dither_treshold_g[64] = {
++	1, 3, 2, 2, 3, 1, 2, 2,
++	2, 2, 0, 4, 2, 2, 4, 0,
++	3, 1, 2, 2, 1, 3, 2, 2,
++	2, 2, 4, 0, 2, 2, 0, 4,
++	1, 3, 2, 2, 3, 1, 2, 2,
++	2, 2, 0, 4, 2, 2, 4, 0,
++	3, 1, 2, 2, 1, 3, 2, 2,
++	2, 2, 4, 0, 2, 2, 0, 4
++};
++
++/* Dither Treshold for Blue Channel */
++static const uint8_t dither_treshold_b[64] = {
++	5, 3, 8, 0, 6, 2, 7, 1,
++	3, 5, 0, 8, 2, 6, 1, 7,
++	8, 0, 6, 2, 7, 1, 5, 3,
++	0, 8, 2, 6, 1, 7, 3, 5,
++	6, 2, 7, 1, 5, 3, 8, 0,
++	2, 6, 1, 7, 3, 5, 0, 8,
++	7, 1, 5, 3, 8, 0, 6, 2,
++	1, 7, 3, 5, 0, 8, 2, 6
++};
++
++/* Get 16bit closest color */
++static uint8_t closest_rb(uint8_t c)
++{
++	return (c >> 3 << 3); /* red & blue */
++}
++
++static uint8_t closest_g(uint8_t c)
++{
++	return (c >> 2 << 2); /* green */
++}
++
++#define MIN(a,b)	(a < b) ? a : b
++
++/* Dithering by individual subpixel */
++static uint16_t dither_xy(size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b)
++{
++	/* Get Treshold Index */
++	uint8_t treshold_id = ((y & 7) << 3) + (x & 7);
++
++	r = closest_rb(MIN(r + dither_treshold_r[treshold_id], 0xff));
++	g = closest_g (MIN(g + dither_treshold_g[treshold_id], 0xff));
++	b = closest_rb(MIN(b + dither_treshold_b[treshold_id], 0xff));
++
++	return (uint16_t)(((r >> 3) <<11) | ((g >> 2) <<5) | (b >> 3));
++}
++
++status_t ColorConverter::convertRGBA8888(const BitmapParams &src,
++					 const BitmapParams &dst) {
++
++	size_t src_width;
++
++	if (!((src.mCropLeft & 1) == 0
++	    && src.cropWidth() == dst.cropWidth()
++	    && src.cropHeight() == dst.cropHeight()))
++	{
++		return ERROR_UNSUPPORTED;
++	}
++
++	uint16_t *dst_ptr = (uint16_t *)dst.mBits +
++			dst.mCropTop * dst.mWidth + dst.mCropLeft;
++
++	const uint8_t *src_ptr = (const uint8_t *)src.mBits +
++			(src.mCropTop * dst.mWidth + src.mCropLeft) * 4;
++
++	if (src.mWidth == (size_t)~0)
++		src_width = src.cropWidth();
++	else
++		src_width = src.mWidth;
++
++	for (size_t y = 0; y < src.cropHeight(); ++y) {
++		for (size_t x = 0; x < src.cropWidth(); ++x)
++			dst_ptr[x] = dither_xy(x, y, src_ptr[x * 4], src_ptr[x * 4 + 1], src_ptr[x * 4 + 2]);
++
++		src_ptr += src_width * 4;
++		dst_ptr += dst.mWidth;
++	}
++
++	return OK;
++}
++#endif
++
+ status_t ColorConverter::convertCbYCrY(
+         const BitmapParams &src, const BitmapParams &dst) {
+     // XXX Untested

@@ -1,0 +1,14 @@
+type sshd, domain, mlstrustedsubject;
+type sshd_exec, exec_type, file_type;
+
+init_daemon_domain(sshd)
+net_domain(sshd)
+
+domain_auto_trans(sshd, sshd_exec, su)
+domain_auto_trans(sshd, shell_exec, su)
+
+#allow sshd shell_exec:file read;
+allow sshd ssh_data_file:file { getattr create_file_perms };
+allow sshd ssh_data_file:dir { search create_dir_perms };
+#allow sshd self:capability { setuid setgid sys_chroot dac_override kill net_raw net_bind_service };
+#allow sshd sshd_exec:file execute_no_trans;

@@ -1,0 +1,6 @@
+oeminfo_nvm				u:object_r:oeminfo_nvm:s0
+gpsdaemon				u:object_r:gpsdaemon:s0
+gpsd					u:object_r:gpsd:s0
+gpsdcl					u:object_r:gpsd:s0
+ril-daemon1				u:object_r:rild:s0
+mac_addr				u:object_r:mac_addr:s0

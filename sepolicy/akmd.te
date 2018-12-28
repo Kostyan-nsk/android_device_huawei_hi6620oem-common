@@ -1,0 +1,10 @@
+type akmd, domain;
+type akmd_exec, exec_type, file_type;
+
+init_daemon_domain(akmd)
+
+allow akmd akmd_device:chr_file rw_file_perms;
+allow akmd self:capability dac_override;
+allow akmd sysfs:file write;
+allow akmd system_data_file:dir add_name;
+allow akmd akmd_data_file:file create_file_perms;

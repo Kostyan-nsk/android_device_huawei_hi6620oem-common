@@ -1,0 +1,22 @@
+diff --git a/core/jni/fd_utils-inl.h b/core/jni/fd_utils-inl.h
+index 6c4ca6b..efa692b 100644
+--- a/core/jni/fd_utils-inl.h
++++ b/core/jni/fd_utils-inl.h
+@@ -364,8 +364,15 @@ class FileDescriptorInfo {
+     size_t path_len = addr_len - offsetof(struct sockaddr_un, sun_path);
+     // This is an unnamed local socket, we do not accept it.
+     if (path_len == 0) {
+-      ALOGE("Unsupported AF_UNIX socket (fd=%d) with empty path.", fd);
+-      return false;
++	if (fd == 5) {
++	    // Return our whitelisted fake name.
++	    result->assign("socket/5");
++	    return true;
++	}
++	else {
++	    ALOGE("Unsupported AF_UNIX socket (fd=%d) with empty path.", fd);
++	    return false;
++	}
+     }
+ 
+     // This is a local socket with an abstract address, we do not accept it.

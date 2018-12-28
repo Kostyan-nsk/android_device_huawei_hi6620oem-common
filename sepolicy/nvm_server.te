@@ -1,0 +1,7 @@
+type nvm_server, domain;
+type nvm_server_exec, exec_type, file_type;
+
+init_daemon_domain(nvm_server)
+net_domain(nvm_server)
+
+allow nvm_server nvm_server_socket:sock_file create_file_perms;

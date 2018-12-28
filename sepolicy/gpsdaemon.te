@@ -1,0 +1,11 @@
+type gpsdaemon, domain;
+type gpsdaemon_exec, exec_type, file_type;
+
+init_daemon_domain(gpsdaemon)
+
+allow gpsdaemon property_socket:sock_file write;
+allow gpsdaemon debugfs:file { getattr read };
+allow gpsdaemon gps_data_file:file create_file_perms;
+allow gpsdaemon gps_data_file:dir rw_dir_perms;
+allow gpsdaemon init:unix_stream_socket connectto;
+allow gpsdaemon gpsd_prop:property_service set;

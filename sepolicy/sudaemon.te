@@ -1,0 +1,4 @@
+allow sudaemon { batterystats_service
+                 alarm_service
+                 activity_service
+                 package_service }:service_manager *;

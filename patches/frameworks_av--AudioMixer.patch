@@ -1,0 +1,13 @@
+diff --git a/services/audioflinger/AudioMixer.cpp b/services/audioflinger/AudioMixer.cpp
+index bb9d4e5..4d086b0 100644
+--- a/services/audioflinger/AudioMixer.cpp
++++ b/services/audioflinger/AudioMixer.cpp
+@@ -80,7 +80,7 @@ static const bool kUseNewMixer = true;
+ // Set kUseFloat to true to allow floating input into the mixer engine.
+ // If kUseNewMixer is false, this is ignored or may be overridden internally
+ // because of downmix/upmix support.
+-static const bool kUseFloat = true;
++static const bool kUseFloat = false;
+ 
+ // Set to default copy buffer size in frames for input processing.
+ static const size_t kCopyBufferFrameCount = 256;

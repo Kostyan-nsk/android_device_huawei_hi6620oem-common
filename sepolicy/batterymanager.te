@@ -1,0 +1,1 @@
+allow untrusted_app battery_service:service_manager find;

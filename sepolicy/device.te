@@ -1,0 +1,6 @@
+type modem_device, dev_type;
+type oeminfo_nvm_device, dev_type;
+type recovery_device, dev_type;
+type akmd_device, dev_type;
+type power_device, dev_type;
+type bt_device, dev_type;

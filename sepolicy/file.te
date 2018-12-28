@@ -1,0 +1,4 @@
+type oeminfo_nvm_socket, file_type;
+type nvm_server_socket, file_type;
+type ssh_data_file, file_type, data_file_type, mlstrustedobject;
+type akmd_data_file, file_type, data_file_type;

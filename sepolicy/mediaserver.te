@@ -1,0 +1,5 @@
+allow mediaserver debugfs:file { read getattr };
+allow mediaserver video_device:chr_file execute;
+allow mediaserver graphics_device:dir search;
+allow mediaserver sensorservice_service:service_manager find;
+allow mediaserver power_device:chr_file { open write };

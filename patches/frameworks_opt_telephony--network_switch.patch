@@ -1,0 +1,37 @@
+From f3ee08d236055591d9fd0c72be60d1abb63ff844 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Tue, 15 Nov 2016 05:27:30 -0600
+Subject: [PATCH] telephony fix 2g/2g/4g switch
+
+Change-Id: I792c22cba4a5df63e70ad9ad2a6eae4fbf9e7100
+---
+ src/java/com/android/internal/telephony/PhoneBase.java | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/java/com/android/internal/telephony/PhoneBase.java b/src/java/com/android/internal/telephony/PhoneBase.java
+index dc790d7..07b36c3 100644
+--- a/src/java/com/android/internal/telephony/PhoneBase.java
++++ b/src/java/com/android/internal/telephony/PhoneBase.java
+@@ -1750,7 +1750,7 @@ public abstract class PhoneBase extends Handler implements Phone {
+         // Only set preferred network types to that which the modem supports
+         int modemRaf = getRadioAccessFamily();
+         int rafFromType = RadioAccessFamily.getRafFromNetworkType(networkType);
+-
++/*
+         if (modemRaf == RadioAccessFamily.RAF_UNKNOWN
+                 || rafFromType == RadioAccessFamily.RAF_UNKNOWN) {
+             Rlog.d(LOG_TAG, "setPreferredNetworkType: Abort, unknown RAF: "
+@@ -1764,8 +1764,8 @@ public abstract class PhoneBase extends Handler implements Phone {
+             }
+             return;
+         }
+-
+-        int filteredRaf = (rafFromType & modemRaf);
++*/
++        int filteredRaf = (rafFromType);
+         int filteredType = RadioAccessFamily.getNetworkTypeFromRaf(filteredRaf);
+ 
+         // The getNetworkTypeFromRaf, has no way to differentiate between MODE_GSM_UMTS
+-- 
+1.9.1
+

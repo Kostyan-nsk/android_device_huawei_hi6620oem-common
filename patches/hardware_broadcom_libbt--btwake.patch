@@ -1,0 +1,37 @@
+diff --git a/src/upio.c b/src/upio.c
+index d24d496..9534d32 100644
+--- a/src/upio.c
++++ b/src/upio.c
+@@ -253,6 +253,23 @@ void upio_init(void)
+ #endif
+ }
+ 
++static void upio_set_btwake(char buffer)
++{
++    int fd;
++    const char path[] = "/proc/bluetooth/sleep/btwake";
++
++    fd = open(path, O_WRONLY);
++    if (fd < 0)
++    {
++        ALOGE("%s: open(%s) for write failed: %s (%d)", __func__, path, strerror(errno), errno);
++        return;
++    }
++    if (write(fd, &buffer, 1) < 0)
++        ALOGE("%s: write(%s) failed: %s (%d)", __func__, path, strerror(errno), errno);
++
++    close(fd);
++}
++
+ /*******************************************************************************
+ **
+ ** Function        upio_cleanup
+@@ -301,6 +318,8 @@ int upio_set_bluetooth_power(int on)
+             break;
+     }
+ 
++    upio_set_btwake(buffer);
++
+     if (is_emulator_context())
+     {
+         /* if new value is same as current, return -1 */

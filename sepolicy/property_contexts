@@ -1,0 +1,10 @@
+ctl.gpsd			u:object_r:gpsd_prop:s0
+ctl.glgpscl			u:object_r:gpsd_prop:s0
+rild.libpath			u:object_r:rild_prop:s0
+rild.libargs			u:object_r:rild_prop:s0
+persist.dsds.enabled		u:object_r:rild_prop:s0
+config.dsds_mode		u:object_r:rild_prop:s0
+multi.rild			u:object_r:rild_prop:s0
+config.hw_dsda			u:object_r:rild_prop:s0
+telephony.default_network	u:object_r:rild_prop:s0
+rild.rild1_ready_to_start	u:object_r:rild_prop:s0

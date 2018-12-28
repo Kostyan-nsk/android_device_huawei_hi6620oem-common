@@ -1,0 +1,3 @@
+allow gpsd sysfs_wake_lock:file { open read write };
+allow gpsd radio_device:chr_file { open read write };
+allow gpsd self:netlink_kobject_uevent_socket { create bind setopt read };
