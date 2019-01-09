@@ -120,6 +120,10 @@ WIFI_DRIVER_FW_PATH_AP			:= "/system/vendor/firmware/fw_bcm4334_apsta_hw.bin"
 BOARD_HAVE_BLUETOOTH_BCM := true
 BOARD_BLUEDROID_VENDOR_CONF := $(DEVICE_PATH)/bluetooth/vnd_hi6620oem.txt
 
+# Extended filesystem support
+TARGET_KERNEL_HAVE_EXFAT := true
+TARGET_KERNEL_HAVE_NTFS := true
+
 # FM Radio
 #BOARD_HAVE_FM_RADIO := true
 #BOARD_DISABLE_FMRADIO_LIBJNI := true
