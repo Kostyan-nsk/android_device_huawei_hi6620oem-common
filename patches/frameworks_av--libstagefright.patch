@@ -7,7 +7,7 @@ index 0ac13b9..70b522c 100644
      void signalSubmitOutputMetadataBufferIfEOS_workaround();
      status_t allocateOutputBuffersFromNativeWindow();
 -#ifdef USE_SAMSUNG_COLORFORMAT
-+#if defined(DECODER_COLOR_FORMAT_RGBA_8888) || defined(DECODER_COLOR_FORMAT_NV12)
++#if defined(DECODER_COLOR_FORMAT_RGBX_8888) || defined(DECODER_COLOR_FORMAT_NV12)
      void setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat);
  #endif
      status_t cancelBufferToNativeWindow(BufferInfo *info);
@@ -19,8 +19,8 @@ index 85ba920..e590744 100644
      status_t convertTIYUV420PackedSemiPlanar(
              const BitmapParams &src, const BitmapParams &dst);
  
-+#ifdef DECODER_COLOR_FORMAT_RGBA_8888
-+    status_t convertRGBA8888(
++#ifdef DECODER_COLOR_FORMAT_RGBX_8888
++    status_t convertRGBX8888(
 +            const BitmapParams &src, const BitmapParams &dst);
 +#endif
 +
@@ -47,7 +47,7 @@ index 581bfba..60fb8c3 100644
      *finalUsage = usage;
  
 -#ifdef USE_SAMSUNG_COLORFORMAT
-+#if defined(DECODER_COLOR_FORMAT_RGBA_8888) || defined(DECODER_COLOR_FORMAT_NV12)
++#if defined(DECODER_COLOR_FORMAT_RGBX_8888) || defined(DECODER_COLOR_FORMAT_NV12)
      OMX_COLOR_FORMATTYPE eNativeColorFormat = def.format.video.eColorFormat;
      setNativeWindowColorFormat(eNativeColorFormat);
  #endif
@@ -56,7 +56,7 @@ index 581bfba..60fb8c3 100644
              width,
              height,
 -#ifdef USE_SAMSUNG_COLORFORMAT
-+#if defined(DECODER_COLOR_FORMAT_RGBA_8888) || defined(DECODER_COLOR_FORMAT_NV12)
++#if defined(DECODER_COLOR_FORMAT_RGBX_8888) || defined(DECODER_COLOR_FORMAT_NV12)
              eNativeColorFormat,
  #else
              def.format.video.eColorFormat,
@@ -65,7 +65,7 @@ index 581bfba..60fb8c3 100644
  }
  
 -#ifdef USE_SAMSUNG_COLORFORMAT
-+#if defined(DECODER_COLOR_FORMAT_RGBA_8888) || defined(DECODER_COLOR_FORMAT_NV12)
++#if defined(DECODER_COLOR_FORMAT_RGBX_8888) || defined(DECODER_COLOR_FORMAT_NV12)
  void ACodec::setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat)
  {
 -    // In case of Samsung decoders, we set proper native color format for the Native Window
@@ -84,7 +84,7 @@ index 581bfba..60fb8c3 100644
 -        }
 +    switch (eNativeColorFormat) {
 +        case OMX_COLOR_Format32bitBGRA8888:
-+            eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_RGBA_8888;
++            eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_RGBX_8888;
 +            break;
 +        case OMX_COLOR_FormatYUV420PackedSemiPlanar:
 +        case OMX_COLOR_FormatYUV420SemiPlanar:
@@ -107,7 +107,7 @@ index 581bfba..60fb8c3 100644
          OMX_COLOR_FORMATTYPE colorFormat =
              static_cast<OMX_COLOR_FORMATTYPE>(tmp);
          err = setVideoPortFormatType(
-+#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++#ifdef DECODER_COLOR_FORMAT_RGBX_8888
 +                kPortIndexOutput, OMX_VIDEO_CodingUnused, OMX_COLOR_Format32bitBGRA8888, haveNativeWindow);
 +#else
                  kPortIndexOutput, OMX_VIDEO_CodingUnused, colorFormat, haveNativeWindow);
@@ -118,7 +118,7 @@ index 581bfba..60fb8c3 100644
              err = setSupportedOutputFormat(!haveNativeWindow /* getLegacyFlexibleFormat */);
          }
      } else {
-+#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++#ifdef DECODER_COLOR_FORMAT_RGBX_8888
 +        err = setVideoPortFormatType(
 +                kPortIndexOutput, OMX_VIDEO_CodingUnused, OMX_COLOR_Format32bitBGRA8888, haveNativeWindow);
 +#else
@@ -151,7 +151,7 @@ index 792c139..aa2a9a6 100644
 -LOCAL_C_INCLUDES += \
 -	$(TOP)/hardware/samsung/exynos4/hal/include \
 -	$(TOP)/hardware/samsung/exynos4/include
-+ifneq (,$(filter RGBA_8888 NV12,$(BOARD_DECODER_COLOR_FORMAT)))
++ifneq (,$(filter RGBX_8888 NV12,$(BOARD_DECODER_COLOR_FORMAT)))
 +LOCAL_CFLAGS += -DDECODER_COLOR_FORMAT_$(BOARD_DECODER_COLOR_FORMAT)
  endif
  
@@ -164,7 +164,7 @@ index 4f7c48f..08a1238 100644
          $(TOP)/frameworks/native/include/media/openmax \
          $(TOP)/hardware/msm7k
  
-+ifeq ($(BOARD_DECODER_COLOR_FORMAT),RGBA_8888)
++ifeq ($(BOARD_DECODER_COLOR_FORMAT),RGBX_8888)
 +LOCAL_CFLAGS += -DDECODER_COLOR_FORMAT_$(BOARD_DECODER_COLOR_FORMAT)
 +endif
 +
@@ -179,7 +179,7 @@ index 597167f..e33f116 100644
          case OMX_QCOM_COLOR_FormatYVU420SemiPlanar:
          case OMX_COLOR_FormatYUV420SemiPlanar:
          case OMX_TI_COLOR_FormatYUV420PackedSemiPlanar:
-+#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++#ifdef DECODER_COLOR_FORMAT_RGBX_8888
 +        case OMX_COLOR_Format32bitBGRA8888:
 +#endif
              return true;
@@ -189,9 +189,9 @@ index 597167f..e33f116 100644
              err = convertTIYUV420PackedSemiPlanar(src, dst);
              break;
  
-+#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++#ifdef DECODER_COLOR_FORMAT_RGBX_8888
 +        case OMX_COLOR_Format32bitBGRA8888:
-+            err = convertRGBA8888(src, dst);
++            err = convertRGBX8888(src, dst);
 +            break;
 +#endif
          default:
@@ -201,7 +201,7 @@ index 597167f..e33f116 100644
      return err;
  }
  
-+#ifdef DECODER_COLOR_FORMAT_RGBA_8888
++#ifdef DECODER_COLOR_FORMAT_RGBX_8888
 +/* Dither Treshold for Red Channel */
 +static const uint8_t dither_treshold_r[64] = {
 +	1, 7, 3, 5, 0, 8, 2, 6,
@@ -264,7 +264,7 @@ index 597167f..e33f116 100644
 +	return (uint16_t)(((r >> 3) <<11) | ((g >> 2) <<5) | (b >> 3));
 +}
 +
-+status_t ColorConverter::convertRGBA8888(const BitmapParams &src,
++status_t ColorConverter::convertRGBX8888(const BitmapParams &src,
 +					 const BitmapParams &dst) {
 +
 +	size_t src_width;
